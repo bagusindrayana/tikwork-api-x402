@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const sequelize = require('./config/database');
 const jobVacancyRoutes = require('./routes/jobVacancyRoutes');
+const { x402Middleware } = require('./middleware/x402Middleware');
 
 const app = express();
 
@@ -26,6 +27,9 @@ app.use(cors({
 
 // Middleware
 app.use(bodyParser.json());
+
+// x402 Payment Middleware
+app.use(x402Middleware);
 
 // Allow iframe embedding from any origin
 app.use((req, res, next) => {

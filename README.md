@@ -7,6 +7,7 @@ Project ini adalah layanan API backend untuk mengelola data dan feed lowongan pe
 - **Framework**: Express.js
 - **Database**: MySQL
 - **ORM**: Sequelize
+- **Payment**: x402 (USDC on Base)
 - **Tools**: Body-parser, Dotenv, Nodemon
 
 ## 🚀 Cara Menjalankan Project
@@ -26,6 +27,59 @@ Project ini adalah layanan API backend untuk mengelola data dan feed lowongan pe
    npm start
    ```
    Server akan berjalan secara default di `http://localhost:3000`.
+
+## 🔒 x402 Payment (Micropayments)
+
+API ini menggunakan **x402 Payment Protocol** untuk monetize endpoint tertentu. Pembayaran menggunakan **USDC** di jaringan **Base**.
+
+### Endpoint Berbayar
+
+| Endpoint | Harga | Kondisi |
+|----------|-------|---------|
+| `/api/jobs` | $0.0001 | Halaman > 1 |
+| `/api/jobs/for-you` | $0.0001 | Halaman > 1 |
+| `/api/jobs/explore` | $0.0001 | Halaman > 1 |
+| `/api/jobs/latest-input` | $0.0001 | Selalu |
+| `/api/jobs/:id/poster` | $0.0005 | Selalu |
+
+### Konfigurasi Wallet
+
+Tambahkan wallet address Anda di file `.env`:
+
+```bash
+X402_PAYTO_ADDRESS=0xYourBaseWalletAddress
+```
+
+Wallet address bisa didapat dari MetaMask, Rabby, atau Coinbase Wallet (pastikan network Base aktif).
+
+### Cara Kerja
+
+1. Request ke endpoint berbayar tanpa header `X-Payment`
+2. Server akan response `402 Payment Required` dengan detail pembayaran
+3. Client membuat payment menggunakan x402 library
+4. Retry request dengan header `X-Payment` berisi payment data
+5. Server verifikasi & settle payment, lalu return data
+
+### Contoh Response 402
+
+```json
+{
+  "x402Version": 1,
+  "accepts": [{
+    "scheme": "usdc",
+    "network": "base-sepolia",
+    "currency": "USDC",
+    "amount": "$0.0001",
+    "description": "Access to for-you jobs page > 1"
+  }]
+}
+```
+
+### Testing
+
+Gunakan testnet **Base Sepolia** untuk testing:
+- Dapatkan USDC testnet dari faucet: https://bridge.base.org/deposit
+- Atau gunakan wallet dengan Base Sepolia network
 
 ## 📡 Dokumentasi API
 
